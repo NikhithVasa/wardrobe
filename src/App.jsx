@@ -1,5 +1,5 @@
 import { useCallback, useEffect, useMemo, useRef, useState } from "react";
-import { Check, HandWaving, Heart, Plus, Sparkle, Trash, X } from "@phosphor-icons/react";
+import { ArrowsOutSimple, Check, HandWaving, Heart, Plus, Sparkle, Trash, X } from "@phosphor-icons/react";
 import { OptimizedImage } from "./OptimizedImage.jsx";
 import { WardrobeUploadFlow } from "./upload-flow.jsx";
 import { ModelPhotoControl } from "./model-photo.jsx";
@@ -351,6 +351,7 @@ function ItemViewer({ item, modelPhoto, onClose, onSave, onDelete, onTryOnResult
   const [closeBlocked, setCloseBlocked] = useState(false);
   const [tryOnBusy, setTryOnBusy] = useState(false);
   const [tryOnError, setTryOnError] = useState("");
+  const [showFullPhoto, setShowFullPhoto] = useState(false);
   const type = TYPE_MAP[item.part]?.singular || "Wardrobe item";
   const hasModeledImage = Boolean(item.modeledImage);
   const pieceRotation = useMemo(() => {
@@ -393,7 +394,8 @@ function ItemViewer({ item, modelPhoto, onClose, onSave, onDelete, onTryOnResult
   useEffect(() => {
     const onKeyDown = (event) => {
       if (event.key === "Escape") {
-        if (sampling) setSampling(null);
+        if (showFullPhoto) setShowFullPhoto(false);
+        else if (sampling) setSampling(null);
         else requestClose();
       }
     };
@@ -406,7 +408,7 @@ function ItemViewer({ item, modelPhoto, onClose, onSave, onDelete, onTryOnResult
       document.body.classList.remove("viewer-open");
       clearTimeout(shakeTimerRef.current);
     };
-  }, [requestClose, sampling]);
+  }, [requestClose, sampling, showFullPhoto]);
 
   useEffect(() => {
     if (!isDirty) setCloseBlocked(false);
@@ -415,6 +417,7 @@ function ItemViewer({ item, modelPhoto, onClose, onSave, onDelete, onTryOnResult
   useEffect(() => {
     setSampling(null);
     setSampleStatus("");
+    setShowFullPhoto(false);
     setPalette(item.palette || []);
     setDraft({ name: item.name || "", part: item.part, color: item.color || "#9a9286", secondaryColor: item.secondaryColor || null, tags: [...(item.tags || [])] });
   }, [item]);
@@ -501,15 +504,18 @@ function ItemViewer({ item, modelPhoto, onClose, onSave, onDelete, onTryOnResult
 
       {hasModeledImage ? (
         <div className="modeled-hero">
-          <OptimizedImage
-            className="modeled-hero-photo"
-            src={item.modeledImage}
-            alt={`${draft.name || type} worn by Harini`}
-            sizes="(max-width: 860px) 100vw, 520px"
-            breakpoints={[320, 480, 640, 800, 1040, 1280]}
-            quality={82}
-            priority
-          />
+          <button className="modeled-photo-button" type="button" onClick={() => setShowFullPhoto(true)} aria-label="View full generated photo">
+            <OptimizedImage
+              className="modeled-hero-photo"
+              src={item.modeledImage}
+              alt={`${draft.name || type} worn by Harini`}
+              sizes="(max-width: 860px) 100vw, 520px"
+              breakpoints={[320, 480, 640, 800, 1040, 1280]}
+              quality={82}
+              priority
+            />
+            <span className="full-photo-hint"><ArrowsOutSimple size={15} aria-hidden="true" /> Full photo</span>
+          </button>
           <div className="viewer-heading modeled-heading">
             <div>
               <h2>{draft.name || TYPE_MAP[draft.part]?.singular}</h2>
@@ -564,6 +570,12 @@ function ItemViewer({ item, modelPhoto, onClose, onSave, onDelete, onTryOnResult
         </div>
       </div>
     </aside>
+    {showFullPhoto && (
+      <div className="photo-lightbox" role="dialog" aria-modal="true" aria-label="Full generated try-on photo" onMouseDown={(event) => event.target === event.currentTarget && setShowFullPhoto(false)}>
+        <button className="photo-lightbox__close" type="button" onClick={() => setShowFullPhoto(false)} aria-label="Close full photo"><X size={24} aria-hidden="true" /></button>
+        <OptimizedImage className="photo-lightbox__image" src={item.modeledImage} alt={`${draft.name || type} worn by Harini, full view`} sizes="100vw" breakpoints={[640, 960, 1280, 1536]} quality={90} priority />
+      </div>
+    )}
     </div>
     </div>
   );

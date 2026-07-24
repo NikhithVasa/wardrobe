@@ -320,6 +320,86 @@ button { font: inherit; }
   object-position: 51% 43%;
 }
 
+.modeled-photo-button {
+  position: absolute;
+  inset: 0 0 auto;
+  z-index: 0;
+  width: 100%;
+  height: 370px;
+  overflow: hidden;
+  border: 0;
+  padding: 0;
+  background: transparent;
+  cursor: zoom-in;
+}
+
+.modeled-photo-button:focus-visible { outline: 3px solid var(--accent); outline-offset: -3px; }
+
+.full-photo-hint {
+  position: absolute;
+  right: 20px;
+  bottom: 72px;
+  z-index: 7;
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+  padding: 8px 11px;
+  border: 1px solid rgba(255, 255, 255, .6);
+  border-radius: 999px;
+  color: #fff;
+  background: rgba(74, 41, 56, .62);
+  -webkit-backdrop-filter: blur(10px);
+  backdrop-filter: blur(10px);
+  font-size: 10px;
+  font-weight: 600;
+  letter-spacing: .04em;
+  text-transform: uppercase;
+}
+
+.photo-lightbox {
+  position: fixed;
+  inset: 0;
+  z-index: 120;
+  display: grid;
+  place-items: center;
+  padding: max(18px, env(safe-area-inset-top)) max(18px, env(safe-area-inset-right)) max(18px, env(safe-area-inset-bottom)) max(18px, env(safe-area-inset-left));
+  background: rgba(48, 20, 32, .94);
+  -webkit-backdrop-filter: blur(18px);
+  backdrop-filter: blur(18px);
+  animation: overlay-in 180ms ease-out both;
+}
+
+.photo-lightbox__image {
+  width: 100%;
+  height: 100%;
+  max-width: min(100%, 1100px);
+  max-height: 100%;
+  object-fit: contain;
+  border-radius: 18px;
+  filter: drop-shadow(0 26px 60px rgba(20, 7, 12, .36));
+}
+
+.photo-lightbox__close {
+  position: fixed;
+  top: max(18px, env(safe-area-inset-top));
+  right: max(18px, env(safe-area-inset-right));
+  z-index: 2;
+  width: 46px;
+  height: 46px;
+  display: grid;
+  place-items: center;
+  border: 1px solid rgba(255, 255, 255, .42);
+  border-radius: 50%;
+  color: #fff;
+  background: rgba(74, 41, 56, .68);
+  -webkit-backdrop-filter: blur(12px);
+  backdrop-filter: blur(12px);
+  cursor: pointer;
+}
+
+.photo-lightbox__close:hover,
+.photo-lightbox__close:focus-visible { background: var(--accent); outline: none; }
+
 .modeled-hero::before,
 .modeled-hero::after {
   content: "";
@@ -1006,6 +1086,8 @@ button { font: inherit; }
   .viewer { padding: max(24px, env(safe-area-inset-top)) 22px max(28px, env(safe-area-inset-bottom)); }
   .modeled-hero { flex-basis: 360px; height: 360px; }
   .modeled-hero-photo { height: 326px; object-position: 49% 43%; }
+  .modeled-photo-button { height: 326px; }
+  .full-photo-hint { right: 16px; bottom: 62px; }
   .modeled-hero::before { height: 150px; }
   .modeled-hero::after { height: 112px; }
   .modeled-heading { top: 20px; left: 20px; padding: 11px 13px 12px; }
