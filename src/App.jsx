@@ -1,7 +1,8 @@
 import { useCallback, useEffect, useMemo, useRef, useState } from "react";
-import { Check, HandWaving, Heart, Plus, Trash, X } from "@phosphor-icons/react";
+import { Check, HandWaving, Heart, Plus, Sparkle, Trash, X } from "@phosphor-icons/react";
 import { OptimizedImage } from "./OptimizedImage.jsx";
 import { WardrobeUploadFlow } from "./upload-flow.jsx";
+import { ModelPhotoControl } from "./model-photo.jsx";
 
 const STORAGE_KEY = "open-wardrobe-edits-v1";
 const DELETED_STORAGE_KEY = "open-wardrobe-deleted-v1";
@@ -337,7 +338,7 @@ function ItemEditor({ draft, setDraft, palette, sampling, setSampling, sampleSta
   );
 }
 
-function ItemViewer({ item, onClose, onSave, onDelete }) {
+function ItemViewer({ item, modelPhoto, onClose, onSave, onDelete, onTryOnResult }) {
   const closeButtonRef = useRef(null);
   const imageRef = useRef(null);
   const samplingCanvasRef = useRef(null);
@@ -348,6 +349,8 @@ function ItemViewer({ item, onClose, onSave, onDelete }) {
   const [draft, setDraft] = useState({ name: item.name || "", part: item.part, color: item.color || "#9a9286", secondaryColor: item.secondaryColor || null, tags: [...(item.tags || [])] });
   const [shaking, setShaking] = useState(false);
   const [closeBlocked, setCloseBlocked] = useState(false);
+  const [tryOnBusy, setTryOnBusy] = useState(false);
+  const [tryOnError, setTryOnError] = useState("");
   const type = TYPE_MAP[item.part]?.singular || "Wardrobe item";
   const hasModeledImage = Boolean(item.modeledImage);
   const pieceRotation = useMemo(() => {
@@ -449,6 +452,26 @@ function ItemViewer({ item, onClose, onSave, onDelete }) {
     setSampling(null);
   };
 
+  const createTryOn = async () => {
+    if (!modelPhoto || tryOnBusy) return;
+    setTryOnBusy(true);
+    setTryOnError("");
+    try {
+      const response = await fetch("/api/try-on", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ itemId: item.id }),
+      });
+      const result = await response.json().catch(() => ({}));
+      if (!response.ok) throw new Error(result.error || "Could not create your try-on photo.");
+      onTryOnResult(item.id, result.modeledImage);
+    } catch (requestError) {
+      setTryOnError(requestError.message);
+    } finally {
+      setTryOnBusy(false);
+    }
+  };
+
   const garmentArtwork = (
     <div
       className={`viewer-art${hasModeledImage ? " viewer-art-floating" : ""}${sampling ? " sampling" : ""}`}
@@ -481,7 +504,7 @@ function ItemViewer({ item, onClose, onSave, onDelete }) {
           <OptimizedImage
             className="modeled-hero-photo"
             src={item.modeledImage}
-            alt={`${draft.name || type} worn by a model`}
+            alt={`${draft.name || type} worn by Harini`}
             sizes="(max-width: 860px) 100vw, 520px"
             breakpoints={[320, 480, 640, 800, 1040, 1280]}
             quality={82}
@@ -505,6 +528,17 @@ function ItemViewer({ item, onClose, onSave, onDelete }) {
         </>
       )}
 
+      <div className="try-on-cta">
+        <div>
+          <strong>{modelPhoto ? hasModeledImage ? "Create another look" : "See this on you" : "Add your photo first"}</strong>
+          <span>{modelPhoto ? "AI will dress your saved photo in this exact piece." : "Use a clear full-body photo from the wardrobe home screen."}</span>
+        </div>
+        <button className="try-on-button" type="button" onClick={createTryOn} disabled={!modelPhoto || tryOnBusy}>
+          <Sparkle size={15} weight="fill" aria-hidden="true" /> {tryOnBusy ? "Creating your look" : "Try on me"}
+        </button>
+      </div>
+      {tryOnError && <p className="try-on-error" role="alert">{tryOnError}</p>}
+
       <div className="viewer-details editing">
         <ItemEditor
           draft={draft}
@@ -516,6 +550,7 @@ function ItemViewer({ item, onClose, onSave, onDelete }) {
         />
 
         {closeBlocked && <p className="unsaved-notice" role="status">Save or cancel changes before closing.</p>}
+
 
         <div className="viewer-actions">
           <button className="delete-button" type="button" onClick={() => onDelete(item.id)}>
@@ -540,6 +575,7 @@ export function App() {
   const [selectedId, setSelectedId] = useState(null);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState("");
+  const [modelPhoto, setModelPhoto] = useState(null);
 
   useEffect(() => {
     fetch("/api/wardrobe", { cache: "no-store" })
@@ -555,6 +591,13 @@ export function App() {
       })
       .catch((requestError) => setError(requestError.message))
       .finally(() => setLoading(false));
+  }, []);
+
+  useEffect(() => {
+    fetch("/api/model", { cache: "no-store" })
+      .then((response) => response.ok ? response.json() : null)
+      .then(setModelPhoto)
+      .catch(() => {});
   }, []);
 
   const selectedItem = items.find((item) => item.id === selectedId) || null;
@@ -605,6 +648,15 @@ export function App() {
     setError("");
   }, []);
 
+  const updateModelPhoto = useCallback((photo) => {
+    setModelPhoto(photo);
+    setItems((current) => current.map((item) => ({ ...item, modeledImage: null })));
+  }, []);
+
+  const attachTryOn = useCallback((id, modeledImage) => {
+    setItems((current) => current.map((item) => item.id === id ? { ...item, modeledImage } : item));
+  }, []);
+
 
   return (
     <div className={`app-shell${selectedItem ? " has-selection" : ""}`}>
@@ -617,6 +669,7 @@ export function App() {
           </h1>
           <div className="gallery-meta-row">
             <p className="piece-count">{items.length} {items.length === 1 ? "piece" : "pieces"}</p>
+            <ModelPhotoControl photo={modelPhoto} onUploaded={updateModelPhoto} />
           </div>
           <nav className="category-nav" aria-label="Filter wardrobe by item type">
             {TYPES.map((type) => (
@@ -651,7 +704,7 @@ export function App() {
         )}
       </main>
 
-      {selectedItem && <ItemViewer item={selectedItem} onClose={() => setSelectedId(null)} onSave={saveItem} onDelete={deleteItem} />}
+      {selectedItem && <ItemViewer item={selectedItem} modelPhoto={modelPhoto} onClose={() => setSelectedId(null)} onSave={saveItem} onDelete={deleteItem} onTryOnResult={attachTryOn} />}
       <WardrobeUploadFlow onUploaded={addUploadedItem} />
     </div>
   );
