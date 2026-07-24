@@ -1,15 +1,17 @@
 import { useCallback, useEffect, useMemo, useRef, useState } from "react";
-import { Check, Plus, Trash, X } from "@phosphor-icons/react";
-import { WardrobeImportFlow } from "./import-flow.jsx";
+import { Check, HandWaving, Plus, Trash, X } from "@phosphor-icons/react";
 import { OptimizedImage } from "./OptimizedImage.jsx";
+import { WARDROBE_PASSWORD_KEY, WardrobeUploadFlow } from "./upload-flow.jsx";
 
 const STORAGE_KEY = "open-wardrobe-edits-v1";
 const DELETED_STORAGE_KEY = "open-wardrobe-deleted-v1";
+
 
 const TYPES = [
   { id: "all", label: "All" },
   { id: "upperbody", label: "Tops", singular: "Top" },
   { id: "wholebody_up", label: "Jackets", singular: "Jacket" },
+  { id: "dresses", label: "Dresses", singular: "Dress" },
   { id: "lowerbody", label: "Bottoms", singular: "Bottom" },
   { id: "accessories_up", label: "Accessories", singular: "Accessory" },
   { id: "shoes", label: "Shoes", singular: "Shoes" },
@@ -540,7 +542,7 @@ export function App() {
   const [error, setError] = useState("");
 
   useEffect(() => {
-    fetch("/api/import/wardrobe", { cache: "no-store" })
+    fetch("/api/wardrobe", { cache: "no-store" })
       .then((response) => {
         if (!response.ok) throw new Error("Could not load the wardrobe.");
         return response.json();
@@ -579,34 +581,47 @@ export function App() {
   };
 
   const deleteItem = async (id) => {
-    if (id.startsWith("import-")) {
+    if (id.startsWith("upload-")) {
+      const savedPassword = localStorage.getItem(WARDROBE_PASSWORD_KEY) || "";
+      const password = savedPassword || window.prompt("Enter the gift passcode to delete this photo") || "";
+      if (!password) return;
+
       try {
-        const response = await fetch(`/api/import/wardrobe/${id}`, { method: "DELETE" });
-        if (!response.ok && response.status !== 404) throw new Error("Could not delete the imported item.");
+        const response = await fetch(`/api/wardrobe?id=${encodeURIComponent(id)}`, {
+          method: "DELETE",
+          headers: { Authorization: `Bearer ${password}` },
+        });
+        if (!response.ok) {
+          const result = await response.json().catch(() => ({}));
+          throw new Error(result.error || "Could not delete the uploaded photo.");
+        }
+        localStorage.setItem(WARDROBE_PASSWORD_KEY, password);
       } catch (requestError) {
         setError(requestError.message);
         return;
       }
     }
+
     setItems((current) => current.filter((item) => item.id !== id));
     removePersistedEdit(id);
     persistDeletedItem(id);
     setSelectedId(null);
   };
 
-  const addImportedItem = useCallback((newItem) => {
-    setItems((current) => current.some((item) => item.id === newItem.id) ? current : [...current, newItem]);
+  const addUploadedItem = useCallback((newItem) => {
+    setItems((current) => current.some((item) => item.id === newItem.id) ? current : [newItem, ...current]);
+    setError("");
   }, []);
 
-  const attachImportedModeledImage = useCallback((jobId, modeledImage) => {
-    const id = `import-${jobId}`;
-    setItems((current) => current.map((item) => item.id === id ? { ...item, modeledImage } : item));
-  }, []);
 
   return (
     <div className={`app-shell${selectedItem ? " has-selection" : ""}`}>
       <main className="gallery-pane">
         <header className="gallery-header">
+          <h1 className="gift-message">
+            Hey Harini <span className="gift-message__wave" aria-label="waving hand"><HandWaving size="1em" weight="fill" aria-hidden="true" /></span>{" "}
+            <span>this is a cute gift for you so you look pretty everyday</span>
+          </h1>
           <div className="gallery-meta-row">
             <p className="piece-count">{items.length} {items.length === 1 ? "piece" : "pieces"}</p>
           </div>
@@ -627,7 +642,7 @@ export function App() {
 
         {error && <p className="status error">{error}</p>}
         {!error && loading && <p className="status">Loading wardrobe</p>}
-        {!error && !loading && !items.length && <p className="status empty">Drop, paste, or add a photo to import your first piece.</p>}
+        {!error && !loading && !items.length && <p className="status empty">Add a dress photo to start Harini's wardrobe.</p>}
 
         {!!items.length && (
           <section className="gallery-grid" aria-label={`${TYPE_MAP[activeType]?.label || "All"} wardrobe items`}>
@@ -644,7 +659,7 @@ export function App() {
       </main>
 
       {selectedItem && <ItemViewer item={selectedItem} onClose={() => setSelectedId(null)} onSave={saveItem} onDelete={deleteItem} />}
-      <WardrobeImportFlow onGarmentApproved={addImportedItem} onModeledApproved={attachImportedModeledImage} />
+      <WardrobeUploadFlow onUploaded={addUploadedItem} />
     </div>
   );
 }

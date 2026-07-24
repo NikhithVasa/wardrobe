@@ -41,6 +41,29 @@ button { font: inherit; }
   padding: 60px 56px 0;
 }
 
+.gift-message {
+  max-width: 920px;
+  margin: 0 0 38px;
+  font-size: clamp(28px, 4.7vw, 68px);
+  font-weight: 470;
+  letter-spacing: -.045em;
+  line-height: 1.02;
+}
+
+.gift-message__wave {
+  display: inline-flex;
+  vertical-align: -.08em;
+  color: var(--accent);
+}
+
+@media (max-width: 520px) {
+  .gift-message {
+    margin-bottom: 28px;
+    font-size: clamp(30px, 10vw, 44px);
+    line-height: 1.04;
+  }
+}
+
 .gallery-meta-row {
   display: flex;
   align-items: center;

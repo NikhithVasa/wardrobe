@@ -21,9 +21,10 @@ export const OptimizedImage = forwardRef(function OptimizedImage({
   ...props
 }, ref) {
   const normalizedSource = sourcePath(src);
+  const isRemote = /^https?:\/\//i.test(normalizedSource || "");
 
-  if (!normalizedSource || normalizedSource.startsWith("data:") || normalizedSource.startsWith("blob:") || normalizedSource.startsWith("/api/")) {
-    return <img ref={ref} src={src} alt={alt} sizes={sizes} loading={loading || (priority ? "eager" : "lazy")} decoding={decoding || "async"} {...props} />;
+  if (!normalizedSource || isRemote || normalizedSource.startsWith("data:") || normalizedSource.startsWith("blob:") || normalizedSource.startsWith("/api/")) {
+    return <img ref={ref} src={src} alt={alt} crossOrigin={isRemote ? "anonymous" : undefined} sizes={sizes} loading={loading || (priority ? "eager" : "lazy")} decoding={decoding || "async"} {...props} />;
   }
 
   return (

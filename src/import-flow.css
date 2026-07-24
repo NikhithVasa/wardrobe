@@ -264,6 +264,18 @@
 .import-button--primary { color: var(--import-paper); background: var(--import-ink); border-color: var(--import-ink); }
 .import-button:disabled { cursor: default; opacity: 0.42; }
 
+.mobile-upload-popover { width: min(520px, 100%); }
+.mobile-upload-content { display: grid; gap: 16px; }
+.mobile-upload-content > .import-field > span { color: var(--import-muted); font-size: 11px; }
+.mobile-upload-help { margin: -8px 0 0; color: var(--import-muted); font-size: 12px; line-height: 1.45; }
+.mobile-upload-actions { display: grid; grid-template-columns: repeat(2, minmax(0, 1fr)); gap: 10px; margin-top: 4px; }
+.mobile-upload-actions .import-button { min-height: 48px; }
+.import-icon-button:disabled { cursor: default; opacity: .45; }
+
+@media (max-width: 440px) {
+  .mobile-upload-actions { grid-template-columns: 1fr; }
+}
+
 @keyframes import-progress { from { transform: translateX(-110%); } to { transform: translateX(300%); } }
 @keyframes import-pulse { 50% { transform: scale(1.65); opacity: 0.22; } }
 @keyframes import-spin { to { transform: rotate(360deg); } }
