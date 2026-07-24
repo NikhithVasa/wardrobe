@@ -1,7 +1,7 @@
 import { useCallback, useEffect, useMemo, useRef, useState } from "react";
-import { Check, HandWaving, Plus, Trash, X } from "@phosphor-icons/react";
+import { Check, HandWaving, Heart, Plus, Trash, X } from "@phosphor-icons/react";
 import { OptimizedImage } from "./OptimizedImage.jsx";
-import { WARDROBE_PASSWORD_KEY, WardrobeUploadFlow } from "./upload-flow.jsx";
+import { WardrobeUploadFlow } from "./upload-flow.jsx";
 
 const STORAGE_KEY = "open-wardrobe-edits-v1";
 const DELETED_STORAGE_KEY = "open-wardrobe-deleted-v1";
@@ -582,20 +582,12 @@ export function App() {
 
   const deleteItem = async (id) => {
     if (id.startsWith("upload-")) {
-      const savedPassword = localStorage.getItem(WARDROBE_PASSWORD_KEY) || "";
-      const password = savedPassword || window.prompt("Enter the gift passcode to delete this photo") || "";
-      if (!password) return;
-
       try {
-        const response = await fetch(`/api/wardrobe?id=${encodeURIComponent(id)}`, {
-          method: "DELETE",
-          headers: { Authorization: `Bearer ${password}` },
-        });
+        const response = await fetch(`/api/wardrobe?id=${encodeURIComponent(id)}`, { method: "DELETE" });
         if (!response.ok) {
           const result = await response.json().catch(() => ({}));
           throw new Error(result.error || "Could not delete the uploaded photo.");
         }
-        localStorage.setItem(WARDROBE_PASSWORD_KEY, password);
       } catch (requestError) {
         setError(requestError.message);
         return;
@@ -618,9 +610,10 @@ export function App() {
     <div className={`app-shell${selectedItem ? " has-selection" : ""}`}>
       <main className="gallery-pane">
         <header className="gallery-header">
+          <p className="gift-kicker"><Heart size={13} weight="fill" aria-hidden="true" /> made for my best friend <Heart size={13} weight="fill" aria-hidden="true" /></p>
           <h1 className="gift-message">
-            Hey Harini <span className="gift-message__wave" aria-label="waving hand"><HandWaving size="1em" weight="fill" aria-hidden="true" /></span>{" "}
-            <span>this is a cute gift for you so you look pretty everyday</span>
+            <span className="gift-message__name">Hey Harini <span className="gift-message__wave" aria-label="waving hand"><HandWaving size="1em" weight="fill" aria-hidden="true" /></span></span>
+            <span className="gift-message__note">this is a cute gift for you so you look pretty everyday</span>
           </h1>
           <div className="gallery-meta-row">
             <p className="piece-count">{items.length} {items.length === 1 ? "piece" : "pieces"}</p>

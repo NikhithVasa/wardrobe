@@ -1,17 +1,7 @@
-import { timingSafeEqual } from "node:crypto";
 import { del, list } from "@vercel/blob";
 
 const PREFIX = "wardrobe/";
 
-function matchesSecret(value) {
-  const expected = process.env.WARDROBE_UPLOAD_PASSWORD || "";
-  if (!value || !expected) return false;
-
-  const actualBuffer = Buffer.from(value);
-  const expectedBuffer = Buffer.from(expected);
-  return actualBuffer.length === expectedBuffer.length
-    && timingSafeEqual(actualBuffer, expectedBuffer);
-}
 
 function itemFromBlob(blob) {
   const [, uploadId, filename = "Dress"] = blob.pathname.split("/");
@@ -55,9 +45,6 @@ export default async function handler(request, response) {
   }
 
   if (request.method === "DELETE") {
-    const password = request.headers.authorization?.replace(/^Bearer\s+/i, "") || "";
-    if (!matchesSecret(password)) return response.status(401).json({ error: "The upload passcode is incorrect." });
-
     const item = (await loadWardrobe()).find((entry) => entry.id === request.query.id);
     if (!item) return response.status(404).json({ error: "Wardrobe item not found." });
 

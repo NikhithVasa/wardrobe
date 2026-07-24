@@ -3,7 +3,6 @@ import { Camera, Check, ImageSquare, Plus, SpinnerGap, X } from "@phosphor-icons
 import { upload } from "@vercel/blob/client";
 import "./import-flow.css";
 
-export const WARDROBE_PASSWORD_KEY = "wardrobe-upload-password-v1";
 const MAX_UPLOAD_BYTES = 25 * 1024 * 1024;
 const ALLOWED_TYPES = new Set(["image/jpeg", "image/png", "image/webp", "image/heic", "image/heif"]);
 
@@ -35,7 +34,6 @@ export function WardrobeUploadFlow({ onUploaded }) {
   const galleryInputRef = useRef(null);
   const cameraInputRef = useRef(null);
   const [open, setOpen] = useState(false);
-  const [password, setPassword] = useState(() => localStorage.getItem(WARDROBE_PASSWORD_KEY) || "");
   const [busy, setBusy] = useState(false);
   const [progress, setProgress] = useState(0);
   const [message, setMessage] = useState("");
@@ -44,11 +42,6 @@ export function WardrobeUploadFlow({ onUploaded }) {
   const chooseFiles = async (files) => {
     const selected = [...files];
     if (!selected.length) return;
-    if (!password.trim()) {
-      setError("Enter the gift passcode before adding photos.");
-      setOpen(true);
-      return;
-    }
 
     const invalid = selected.find((file) => !ALLOWED_TYPES.has(file.type) || file.size > MAX_UPLOAD_BYTES);
     if (invalid) {
@@ -60,7 +53,6 @@ export function WardrobeUploadFlow({ onUploaded }) {
     setBusy(true);
     setOpen(true);
     setError("");
-    localStorage.setItem(WARDROBE_PASSWORD_KEY, password.trim());
 
     try {
       for (let index = 0; index < selected.length; index += 1) {
@@ -69,7 +61,6 @@ export function WardrobeUploadFlow({ onUploaded }) {
         const blob = await upload(`wardrobe/${uploadId}/${safeFilename(file.name)}`, file, {
           access: "public",
           handleUploadUrl: "/api/upload",
-          clientPayload: JSON.stringify({ password: password.trim() }),
           multipart: true,
           onUploadProgress: ({ percentage }) => {
             setProgress(Math.round(((index + (percentage / 100)) / selected.length) * 100));
@@ -82,7 +73,6 @@ export function WardrobeUploadFlow({ onUploaded }) {
       setMessage(`${selected.length} ${selected.length === 1 ? "dress" : "dresses"} added to the wardrobe.`);
     } catch (requestError) {
       const detail = requestError.message || "The photos could not be uploaded.";
-      if (detail.toLowerCase().includes("passcode")) localStorage.removeItem(WARDROBE_PASSWORD_KEY);
       setError(detail);
     } finally {
       setBusy(false);
@@ -136,15 +126,10 @@ export function WardrobeUploadFlow({ onUploaded }) {
           </header>
 
           <div className="mobile-upload-content">
-            <label className="import-field">
-              <span>Gift passcode</span>
-              <input type="password" autoComplete="current-password" value={password} onChange={(event) => setPassword(event.target.value)} placeholder="Enter passcode" disabled={busy} />
-            </label>
-            <p className="mobile-upload-help">The passcode keeps other people from adding or deleting photos.</p>
 
             <div className="mobile-upload-actions">
-              <button className="import-button import-button--primary" type="button" onClick={() => cameraInputRef.current?.click()} disabled={busy || !password.trim()}><Camera size={18} /> Take a photo</button>
-              <button className="import-button" type="button" onClick={() => galleryInputRef.current?.click()} disabled={busy || !password.trim()}><ImageSquare size={18} /> Choose photos</button>
+              <button className="import-button import-button--primary" type="button" onClick={() => cameraInputRef.current?.click()} disabled={busy}><Camera size={18} /> Take a photo</button>
+              <button className="import-button" type="button" onClick={() => galleryInputRef.current?.click()} disabled={busy}><ImageSquare size={18} /> Choose photos</button>
             </div>
 
             {busy && <div className="import-progress is-reviewing" role="status" aria-live="polite"><div className="import-progress__meta"><span>Uploading photos</span><span>{progress}%</span></div><div className="import-progress__track"><div className="import-progress__bar" style={{ "--import-progress": `${progress}%` }} /></div></div>}

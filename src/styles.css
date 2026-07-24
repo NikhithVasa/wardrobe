@@ -1,11 +1,13 @@
 @import "@fontsource-variable/instrument-sans";
 
 :root {
-  --paper: #f4f0e8;
-  --ink: #191919;
-  --muted: #66625d;
-  --line: #cfc8bc;
-  --accent: #6e302e;
+  --paper: #fff8fb;
+  --paper-deep: #f9e7ee;
+  --ink: #4a2938;
+  --muted: #93687a;
+  --line: #e7becd;
+  --accent: #c6537c;
+  --accent-soft: #f4cade;
   font-family: "Instrument Sans Variable", "Helvetica Neue", Arial, sans-serif;
   color: var(--ink);
   background: var(--paper);
@@ -21,7 +23,9 @@ body {
   margin: 0;
   min-width: 320px;
   min-height: 100vh;
-  background: var(--paper);
+  background:
+    radial-gradient(circle at 86% 4%, rgba(238, 177, 201, .28), transparent 28rem),
+    linear-gradient(180deg, #fffafd 0%, var(--paper) 55%, #fdf2f6 100%);
   color: var(--ink);
   -webkit-font-smoothing: antialiased;
 }
@@ -32,36 +36,70 @@ button { font: inherit; }
 
 .app-shell {
   min-height: 100vh;
-  background: var(--paper);
+  background: transparent;
 }
 
 .gallery-pane { min-width: 0; }
 
 .gallery-header {
+  position: relative;
   padding: 60px 56px 0;
 }
 
+.gift-kicker {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  width: max-content;
+  margin: 0 0 22px;
+  padding: 8px 13px;
+  border: 1px solid rgba(198, 83, 124, .24);
+  border-radius: 999px;
+  color: var(--accent);
+  background: rgba(255, 255, 255, .58);
+  box-shadow: 0 8px 24px rgba(142, 67, 94, .08);
+  font-size: 11px;
+  font-weight: 600;
+  letter-spacing: .08em;
+  text-transform: uppercase;
+}
+
 .gift-message {
-  max-width: 920px;
-  margin: 0 0 38px;
-  font-size: clamp(28px, 4.7vw, 68px);
-  font-weight: 470;
-  letter-spacing: -.045em;
-  line-height: 1.02;
+  max-width: 980px;
+  display: grid;
+  gap: 12px;
+  margin: 0 0 42px;
+  line-height: 1;
+}
+
+.gift-message__name {
+  color: var(--accent);
+  font-family: Georgia, "Times New Roman", serif;
+  font-size: clamp(48px, 7vw, 104px);
+  font-style: italic;
+  font-weight: 400;
+  letter-spacing: -.055em;
+}
+
+.gift-message__note {
+  max-width: 780px;
+  font-size: clamp(24px, 3.3vw, 48px);
+  font-weight: 440;
+  letter-spacing: -.04em;
+  line-height: 1.07;
 }
 
 .gift-message__wave {
   display: inline-flex;
   vertical-align: -.08em;
-  color: var(--accent);
+  color: #df8aac;
 }
 
 @media (max-width: 520px) {
-  .gift-message {
-    margin-bottom: 28px;
-    font-size: clamp(30px, 10vw, 44px);
-    line-height: 1.04;
-  }
+  .gift-kicker { margin-bottom: 18px; font-size: 10px; }
+  .gift-message { gap: 10px; margin-bottom: 34px; }
+  .gift-message__name { font-size: clamp(48px, 15vw, 66px); }
+  .gift-message__note { font-size: clamp(24px, 7.4vw, 32px); line-height: 1.1; }
 }
 
 .gallery-meta-row {
@@ -72,9 +110,14 @@ button { font: inherit; }
 }
 
 .piece-count {
+  width: max-content;
   margin: 0;
-  font-size: 13px;
-  font-weight: 500;
+  padding: 7px 11px;
+  border-radius: 999px;
+  color: var(--accent);
+  background: var(--paper-deep);
+  font-size: 11px;
+  font-weight: 650;
   letter-spacing: .1em;
   line-height: 1;
   text-transform: uppercase;
@@ -86,14 +129,14 @@ button { font: inherit; }
   display: flex;
   align-items: center;
   flex-wrap: nowrap;
-  gap: 0;
-  margin: 48px 0 0;
-  border: 0;
-  border-radius: 0;
-  padding: 0;
+  gap: 8px;
+  margin: 34px 0 0;
+  padding: 5px;
   overflow-x: auto;
-  background: transparent;
-  box-shadow: none;
+  border: 1px solid rgba(198, 83, 124, .18);
+  border-radius: 999px;
+  background: rgba(255, 255, 255, .58);
+  box-shadow: 0 12px 34px rgba(112, 50, 72, .07);
   scrollbar-width: none;
 }
 
@@ -102,28 +145,20 @@ button { font: inherit; }
 .category-nav button {
   position: relative;
   flex: 0 0 auto;
-  min-height: 40px;
+  min-height: 38px;
   border: 0;
-  border-top: 1px solid var(--line);
-  border-bottom: 1px solid var(--line);
-  border-radius: 0;
-  padding: 10px 18px;
+  border-radius: 999px;
+  padding: 9px 17px;
   background: transparent;
   color: var(--muted);
-  font-size: 12px;
-  font-weight: 520;
-  letter-spacing: .055em;
+  font-size: 11px;
+  font-weight: 620;
+  letter-spacing: .045em;
   text-transform: uppercase;
   cursor: pointer;
-  transition: background-color 160ms ease, color 160ms ease, box-shadow 160ms ease;
+  transition: background-color 160ms ease, color 160ms ease, box-shadow 160ms ease, transform 160ms ease;
 }
 
-.category-nav button:first-child { border-left: 1px solid var(--line); }
-.category-nav button + button { border-left: 1px solid var(--line); }
-.category-nav button:last-child { border-right: 1px solid var(--line); }
-.category-nav button:last-child {
-  border-right: 1px solid var(--line);
-}
 
 .category-nav button::after {
   content: none;
@@ -133,9 +168,9 @@ button { font: inherit; }
 .category-nav button:focus-visible { color: var(--ink); background: rgba(25, 25, 25, .07); }
 
 .category-nav button.active {
-  background: var(--ink);
-  color: var(--paper);
-  box-shadow: inset 0 0 0 1px var(--ink);
+  background: linear-gradient(135deg, #d86790, #b9426e);
+  color: #fff8fb;
+  box-shadow: 0 7px 18px rgba(166, 52, 94, .24);
 }
 
 .category-nav button:focus-visible {
@@ -156,17 +191,20 @@ button { font: inherit; }
   aspect-ratio: .78;
   display: grid;
   place-items: center;
-  border: 1px solid transparent;
-  padding: 10px;
-  background: transparent;
+  border: 1px solid rgba(198, 83, 124, .16);
+  border-radius: 28px;
+  padding: 12px;
+  background: rgba(255, 255, 255, .62);
+  box-shadow: 0 16px 36px rgba(116, 55, 78, .08);
   cursor: zoom-in;
-  transition: border-color 160ms ease;
+  transition: border-color 160ms ease, box-shadow 180ms ease, transform 180ms ease;
 }
 
 .gallery-item img {
   width: 100%;
   height: 100%;
   object-fit: contain;
+  border-radius: 18px;
   transform: scale(.94);
   transition: transform 220ms cubic-bezier(.2, .7, .2, 1);
   -webkit-user-drag: none;
@@ -183,10 +221,17 @@ button { font: inherit; }
 }
 
 .status {
-  margin: 70px 56px;
+  width: min(520px, calc(100% - 36px));
+  margin: 58px auto;
+  padding: 28px;
+  border: 1px dashed var(--line);
+  border-radius: 24px;
   color: var(--muted);
-  font-size: 13px;
-  letter-spacing: .04em;
+  background: rgba(255, 255, 255, .48);
+  font-size: 12px;
+  letter-spacing: .035em;
+  line-height: 1.5;
+  text-align: center;
   text-transform: uppercase;
 }
 
@@ -198,7 +243,7 @@ button { font: inherit; }
   z-index: 20;
   display: flex;
   justify-content: flex-end;
-  background: rgba(25, 24, 22, .28);
+  background: rgba(75, 38, 53, .3);
   animation: overlay-in 180ms ease-out both;
 }
 
@@ -217,9 +262,9 @@ button { font: inherit; }
   display: flex;
   flex-direction: column;
   padding: 42px 34px 46px;
-  background: var(--paper);
+  background: linear-gradient(180deg, #fffafd, var(--paper));
   overflow: auto;
-  box-shadow: -18px 0 50px rgba(25, 24, 22, .08);
+  box-shadow: -22px 0 60px rgba(91, 40, 60, .13);
 }
 
 .viewer.has-modeled-image {
@@ -519,22 +564,23 @@ button { font: inherit; }
 .secondary-button,
 .delete-button,
 .sample-button {
-  min-height: 36px;
+  min-height: 38px;
   display: inline-flex;
   align-items: center;
   justify-content: center;
   gap: 7px;
   border: 1px solid var(--line);
-  padding: 8px 12px;
-  background: transparent;
+  border-radius: 999px;
+  padding: 8px 14px;
+  background: rgba(255, 255, 255, .46);
   color: var(--ink);
   font-size: 12px;
-  font-weight: 500;
+  font-weight: 550;
   cursor: pointer;
 }
 
 .edit-button { margin-right: auto; }
-.primary-button { border-color: var(--ink); background: var(--ink); color: var(--paper); }
+.primary-button { border-color: var(--accent); background: linear-gradient(135deg, #d86790, #b9426e); color: #fff8fb; }
 .delete-button { border-color: transparent; padding-left: 0; color: var(--accent); }
 .sample-button.active { border-color: var(--accent); color: var(--accent); }
 .action-spacer { flex: 1; }
@@ -583,11 +629,11 @@ button { font: inherit; }
 .field select,
 .tag-input-row input {
   width: 100%;
-  min-height: 40px;
+  min-height: 42px;
   border: 1px solid var(--line);
-  border-radius: 0;
-  padding: 9px 10px;
-  background: rgba(255, 255, 255, .18);
+  border-radius: 12px;
+  padding: 9px 11px;
+  background: rgba(255, 255, 255, .62);
   color: var(--ink);
   font: inherit;
   font-size: 13px;
